@@ -111,8 +111,8 @@ def calculate_points_from_results(txt_file: str, class_points: dict, output_poin
 # Example usage
 if __name__ == "__main__":
     # Paths and parameters
-    image_path = "C:/Users/pc/Desktop/IMG_8162.jpg"
-    model_path = "C:/Users/pc/Desktop/results_final/runs/detect/train/weights/best.pt"
+    image_path = "here is the photo path"
+    model_path = "here is the modle path"
 
     # Set output_dir to "output" folder
     base_output_dir = os.path.abspath(os.path.join(model_path, "../../../../../output"))
