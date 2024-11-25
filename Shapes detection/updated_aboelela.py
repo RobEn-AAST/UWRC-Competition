@@ -1,14 +1,14 @@
 import os
-import cv2
 import subprocess
 
+def run_yolo_and_count_shapes(image_path: str, model_path: str, base_output_dir: str, output_txt: str):
+    # Create the base output directory if it doesn't exist
+    os.makedirs(base_output_dir, exist_ok=True)
 
-def run_yolo_and_count_shapes(image_path: str, model_path: str, output_dir: str, output_txt: str):
-    # Ensure the output directory exists
-    os.makedirs(output_dir, exist_ok=True)
+    # Define the YOLO project directory under the base output folder
+    project = os.path.join(base_output_dir, "yolo_results")
+    os.makedirs(project, exist_ok=True)
 
-    # Set up YOLO project and name arguments
-    project = output_dir
     name = "detection_results"
 
     # YOLO detection command
@@ -30,14 +30,14 @@ def run_yolo_and_count_shapes(image_path: str, model_path: str, output_dir: str,
         return
 
     # Find the latest results directory
-    results_dirs = [d for d in os.listdir(output_dir) if d.startswith(name)]
+    results_dirs = [d for d in os.listdir(project) if d.startswith(name)]
     if not results_dirs:
         print("No results directory found.")
         return
 
     # Sort directories to get the latest one
-    latest_dir = sorted(results_dirs, key=lambda x: os.path.getmtime(os.path.join(output_dir, x)))[-1]
-    label_dir = os.path.join(output_dir, latest_dir, "labels")
+    latest_dir = sorted(results_dirs, key=lambda x: os.path.getmtime(os.path.join(project, x)))[-1]
+    label_dir = os.path.join(project, latest_dir, "labels")
 
     # Count detected shapes
     shape_counts = {}
@@ -63,6 +63,7 @@ def run_yolo_and_count_shapes(image_path: str, model_path: str, output_dir: str,
         txt_file.write(f"Total Shapes: {total_shapes}\n")
 
     print(f"Results saved in {output_txt}")
+
 
 def calculate_points_from_results(txt_file: str, class_points: dict, output_points_file: str):
     # Ensure the input file exists
@@ -105,63 +106,24 @@ def calculate_points_from_results(txt_file: str, class_points: dict, output_poin
 
     print(f"Total Points: {total_points}")
     print(f"Points calculation completed. Results saved in {output_points_file}")
-    
-    
-
-def capture_image_from_camera(output_image_path: str):
-    # Open the camera
-    cap = cv2.VideoCapture(0)
-
-    if not cap.isOpened():
-        print("Error: Unable to access the camera.")
-        return False
-
-    print("Press 'c' to capture an image or 'q' to quit.")
-
-    while True:
-        # Capture frame-by-frame
-        ret, frame = cap.read()
-
-        if not ret:
-            print("Error: Unable to read from the camera.")
-            break
-
-        # Display the frame
-        cv2.imshow("Camera Feed", frame)
-
-        # Wait for key press
-        key = cv2.waitKey(1) & 0xFF
-
-        if key == ord('c'):  # Capture the image when 'c' is pressed
-            cv2.imwrite(output_image_path, frame)
-            print(f"Image captured and saved to {output_image_path}")
-            break
-        elif key == ord('q'):  # Quit when 'q' is pressed
-            print("Exiting without capturing.")
-            break
-
-    # Release the camera and close the window
-    cap.release()
-    cv2.destroyAllWindows()
-
-    return True
 
 
 # Example usage
 if __name__ == "__main__":
     # Paths and parameters
-    model_path = "C:/Users/HP/OneDrive/Desktop/results_final/runs/detect/train/weights/best.pt"
-    output_dir = "C:/Users/HP/OneDrive/Desktop/results_finaloutput"
-    shape_counts_file = "C:/Users/HP/OneDrive/Desktop/shape_counts.txt"
-    output_points_file = "C:/Users/HP/OneDrive/Desktop/shape_points_summary.txt"
+    image_path = "here is the photo path"
+    model_path = "here is the modle path"
+
+    # Set output_dir to "output" folder
+    base_output_dir = os.path.abspath(os.path.join(model_path, "../../../../../output"))
+
+    # Define the paths for saving results
+    shape_counts_file = os.path.join(base_output_dir, "shape_counts.txt")
+    output_points_file = os.path.join(base_output_dir, "shape_points_summary.txt")
     class_points = {0: 20, 1: 5, 2: 15, 3: 10}  # Points for each class
-    captured_image_path = "C:/Users/HP/OneDrive/Desktop/results_final/captured_image.jpg"
 
-    # Step 1: Capture image from the camera
-    if capture_image_from_camera(captured_image_path):
-        # Step 2: Run YOLO and save shape counts
-        run_yolo_and_count_shapes(captured_image_path, model_path, output_dir, shape_counts_file)
+    # Step 1: Run YOLO and save shape counts
+    run_yolo_and_count_shapes(image_path, model_path, base_output_dir, shape_counts_file)
 
-        # Step 3: Calculate points based on shape counts
-        calculate_points_from_results(shape_counts_file, class_points, output_points_file)
-
+    # Step 2: Calculate points based on shape counts
+    calculate_points_from_results(shape_counts_file, class_points, output_points_file)
