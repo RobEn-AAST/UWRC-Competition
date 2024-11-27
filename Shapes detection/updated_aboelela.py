@@ -162,7 +162,7 @@ if __name__ == "__main__":
     # Paths and parameters
     if(saved_image_path):
         image_path = saved_image_path
-        model_path = "C:\\Users\\pc\\Desktop\\results_final\\runs\\detect\\train\\weights\\best.pt"
+        model_path = "Type Here The Model Path"
 
         # Set output_dir to "output" folder
         base_output_dir = os.path.abspath(os.path.join(model_path, "../../../../../output"))
