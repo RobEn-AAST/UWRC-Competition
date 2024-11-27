@@ -1,5 +1,54 @@
+import cv2
 import os
 import subprocess
+
+def capture_photo_in_one_function():
+    # Get the directory of the running script
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    
+    # Generate a unique filename based on a counter or timestamp
+    filename = "captured_photo.jpg"  # Change this to a dynamic name if needed
+    image_path = os.path.join(script_dir, filename)  # Save in the same folder as the script
+
+    # Open the camera
+    cap = cv2.VideoCapture(0)
+    if not cap.isOpened():
+        print("Error: Could not open the camera.")
+        return None  # No photo captured
+
+    print("Press 'SPACE' to capture a photo or 'ESC' to exit.")
+    indicator = 0
+    while True:
+        # Capture frame
+        ret, frame = cap.read()
+        if not ret:
+            print("Error: Failed to capture image.")
+            break
+
+        # Display live camera feed
+        cv2.imshow("Camera Preview", frame)
+
+        # Listen for key press
+        key = cv2.waitKey(1)
+        if key == 27:  # ESC key
+            print("Exiting without saving.")
+            image_path = None  # No photo saved
+            break
+        elif key == 32:  # SPACE key
+            # Save the image
+            cv2.imwrite(image_path, frame)
+            print(f"Photo captured and saved at {image_path}.")
+            break
+
+    # Release resources
+    cap.release()
+    cv2.destroyAllWindows()
+
+    # Return the image path (or None if no photo was captured)
+    return image_path
+
+# Example usage:
+saved_image_path = capture_photo_in_one_function()
 
 def run_yolo_and_count_shapes(image_path: str, model_path: str, base_output_dir: str, output_txt: str):
     # Create the base output directory if it doesn't exist
@@ -111,19 +160,22 @@ def calculate_points_from_results(txt_file: str, class_points: dict, output_poin
 # Example usage
 if __name__ == "__main__":
     # Paths and parameters
-    image_path = "here is the photo path"
-    model_path = "here is the modle path"
+    if(saved_image_path):
+        image_path = saved_image_path
+        model_path = "C:\\Users\\pc\\Desktop\\results_final\\runs\\detect\\train\\weights\\best.pt"
 
-    # Set output_dir to "output" folder
-    base_output_dir = os.path.abspath(os.path.join(model_path, "../../../../../output"))
+        # Set output_dir to "output" folder
+        base_output_dir = os.path.abspath(os.path.join(model_path, "../../../../../output"))
 
-    # Define the paths for saving results
-    shape_counts_file = os.path.join(base_output_dir, "shape_counts.txt")
-    output_points_file = os.path.join(base_output_dir, "shape_points_summary.txt")
-    class_points = {0: 20, 1: 5, 2: 15, 3: 10}  # Points for each class
+        # Define the paths for saving results
+        shape_counts_file = os.path.join(base_output_dir, "shape_counts.txt")
+        output_points_file = os.path.join(base_output_dir, "shape_points_summary.txt")
+        class_points = {0: 20, 1: 5, 2: 15, 3: 10}  # Points for each class
 
-    # Step 1: Run YOLO and save shape counts
-    run_yolo_and_count_shapes(image_path, model_path, base_output_dir, shape_counts_file)
+        # Step 1: Run YOLO and save shape counts
+        run_yolo_and_count_shapes(image_path, model_path, base_output_dir, shape_counts_file)
 
-    # Step 2: Calculate points based on shape counts
-    calculate_points_from_results(shape_counts_file, class_points, output_points_file)
+        # Step 2: Calculate points based on shape counts
+        calculate_points_from_results(shape_counts_file, class_points, output_points_file)
+    else:
+        print("No saved image path provided. Please provide a saved image path to run the script.")
